@@ -5,11 +5,17 @@ from mcp.server.fastmcp import FastMCP
 
 mcp = FastMCP("tangerine")
 
+MCP_TRANSPORT = os.environ.get("MCP_TRANSPORT", "stdio")
+
 
 async def make_request(
     url: str, method: str = "GET", data: dict[str, Any] = None
 ) -> dict[str, Any] | None:
-    token = os.environ["TANGERINE_TOKEN"]
+    token = (
+        os.environ["TANGERINE_TOKEN"]
+        if MCP_TRANSPORT == "stdio"
+        else mcp.get_context().request_context.request.headers["X-Tangerine-Token"]
+    )
     headers = {
         "Authorization": f"Bearer {token}",
         "Accept": "application/json",
@@ -62,4 +68,4 @@ async def search_konflux(search_text: str) -> str:
 
 
 if __name__ == "__main__":
-    mcp.run(transport=os.environ.get("MCP_TRANSPORT", "stdio"))
+    mcp.run(transport=MCP_TRANSPORT)
